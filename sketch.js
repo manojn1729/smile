@@ -1,6 +1,7 @@
 let wBox
 let font
 let font1
+let font2
 let sData='Happy Birthday'
 let wData='AKKA'
 let points=[]
@@ -27,19 +28,28 @@ flowPath=[];
 let flag=-1;
 let textP=[]
 let cordinate=0;
+let songFlag=0;
 
 
 function preload(){
     font1=loadFont('fonts/font1.ttf')
+    font2=loadFont('fonts/Merienda1.ttf')
     font=loadFont('fonts/Gloomy.ttf')
+    songBackground=loadSound('music/background1.mp3')
+    songFlower=loadSound('music/flower_glitter.mp3')
+    songSalar=loadSound('music/salar.mp3')
     for(let i=0;i<6;i++){
         flowerImages.push(loadImage(`flower/flower${i+1}.png`))
     }
 }
 
 function setup(){
-    createCanvas(windowWidth,windowHeight)
     pixelDensity(1)
+    createCanvas(windowWidth,windowHeight);
+    songBackground.setVolume(0.3)
+    songFlower.setVolume(0.5)
+    songBackground.rate(0.7)
+    songBackground.playMode('sustain');
     imageMode(CENTER)
     for(let i=0;i<6;i++){
         flowers.push(new Flower(flowerImages[i]))
@@ -58,26 +68,35 @@ function draw(){
     colorMode(HSB,360,360,360,255)
 
     if(bubbles.length>0 || flowers.length>0){
-        background(0)
-        drawPoints()
-        drawBubbles()
+        if(songFlag==1){
+            background(0)
+            drawPoints()
+            drawBubbles()
+        }
+        else{
+            background(0)
+        }
     }
     else{
         if(cordinate==0){
             getAxis()
         }
         if(alphaB>0){
+            songBackground.setVolume(((alphaB/255)*0.7))
                 alphaB-=1
             if(cordinate==1 || cordinate==3 || cordinate==-1){
                 background(0)
             }
             else{
-                background(255-alphaB)
+                background(220-alphaB)
             }
             drawPoints()
         }
         else{
             drawNoise()
+            if(!(songSalar.isPlaying())){
+                songSalar.loop()
+            }
     }}
 
     // noLoop()
@@ -105,6 +124,11 @@ function getAxis(){
     }
     else{
         cordinate=-1
+    }
+    if(cordinate==3 || cordinate==4){
+        particals=[]
+        font1=font2
+        setupNoise("ASHIKA")
     }
     print(cordinate)
 }
@@ -137,7 +161,7 @@ function drawNoise(){
         flowPath[x+y*cols].add(pointLine)
     }
 
-    stroke(noise(zOff)*360,360,360,2)
+    stroke(noise(zOff)*360,360,360,4)
 
     for(let i=0;i<particals.length;i++){
         particals[i].update()
@@ -211,9 +235,9 @@ function getPoints(){
     ...t1points.map(point=>({x:point.x+nxdt,y:point.y+nydt,z:1}))]
 }
 
-function setupNoise(){
+function setupNoise(textData="def"){
     textFont(font1)
-    textBox=getTextBound("def")
+    textBox=getTextBound(textData)
     textSize(textBox.s)
     textP=font1.textToPoints(textBox.t,0,height,textBox.s,{sampleFactor:0.2})
     dx=width/2-(textBox.x+textBox.w/2)
@@ -260,9 +284,14 @@ function deleteBubbles(){
 
 
 function mouseClicked(){
+    if(!(songBackground.isPlaying())){
+            songBackground.loop()
+            songFlag=1
+    }
     for(let i=flowers.length-1;i>=0;i--){
         if(flowers[i].inBound(mouseX,mouseY)){
             let temp=flowers.splice(i,1)[0]
+            songFlower.play()
             for(let i=0;i<temp.points.length;i++){
                     dots.push(new Dot(temp.x, temp.y, temp.points[i].x,temp.points[i].y,temp.points[i].z==0?54:random(0,360)))
             }
