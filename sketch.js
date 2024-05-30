@@ -75,6 +75,8 @@ function draw(){
         }
         else{
             background(0)
+            drawPoints()
+            drawBubbles()
         }
     }
     else{
